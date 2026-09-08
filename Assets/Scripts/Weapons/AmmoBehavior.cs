@@ -3,9 +3,8 @@ using UnityEngine;
 public class AmmoBehavior : MonoBehaviour
 {
     [SerializeField] private float normalAmmoSpeed = 15f;
-    [SerializeField] private float destroyTime = 4f;
-    [SerializeField] private LayerMask whatDestroysAmmo;
-
+    [SerializeField] private float destroyTime;
+    [SerializeField] private float rotation;
 
     private Rigidbody2D rb;
     private Vector2 direction;
@@ -18,18 +17,25 @@ public class AmmoBehavior : MonoBehaviour
         SetStraightVelocity();
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        //is the collision within the whatDestroysAmmo layerMask
-        if((whatDestroysAmmo.value & (1 << collision.gameObject.layer)) > 0)
+        if(collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
         {
-            //TODO: add:
-            //spawn particles
-            //sound effects
-            //ScreenShake
-            //Damage Enemy
-            //Destroy the Ammo
             Destroy(gameObject);
+        }
+
+        if(collision.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+        {
+            //bounce upward
+            Vector2 bounceDirection = collision.GetContact(0).normal;
+
+            bounceDirection.y += 0.1f;
+            bounceDirection.Normalize();
+
+            rb.linearVelocity = bounceDirection * 1f;
+
+            //spin
+            rb.angularVelocity = rotation;
         }
     }
 
