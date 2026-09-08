@@ -4,11 +4,17 @@ using UnityEngine.InputSystem;
 public class CharacterController : MonoBehaviour
 {
     public Rigidbody2D mainBody;
-    public InputAction playerControls;
-    public float moveDirection;
-    public float speed;
-
+    public InputAction moveControls;
+    public InputAction jumpControls;
     public SpriteRenderer faceDirection;
+
+    public float moveDirection;
+    private bool isGrounded;
+    public float speed;
+    public float jumpForce;
+
+    public int targetFrameRate = 60;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -18,7 +24,8 @@ public class CharacterController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        moveDirection = playerControls.ReadValue<Vector2>().x;
+        Application.targetFrameRate = targetFrameRate;
+        moveDirection = moveControls.ReadValue<Vector2>().x;
 
         //turns sprite on it's x-axis
         if(moveDirection < 0)
@@ -29,6 +36,13 @@ public class CharacterController : MonoBehaviour
         {
             faceDirection.flipX = false;
         }
+
+        //jump mechanic
+        if (jumpControls.WasPressedThisFrame() && isGrounded)
+        {
+            mainBody.linearVelocity = new Vector2(mainBody.linearVelocity.x, jumpForce);
+        }
+
     }
 
     void FixedUpdate()
@@ -38,11 +52,32 @@ public class CharacterController : MonoBehaviour
 
     void OnEnable()
     {
-        playerControls.Enable();
+        moveControls.Enable();
+        jumpControls.Enable();
+
     }
 
     void OnDisable()
     {
-        playerControls.Disable();
+        moveControls.Disable();
+        jumpControls.Disable();
+    }
+
+
+    //jump mech stuff
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = true;
+        }
+    }
+
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = false;
+        }
     }
 }
